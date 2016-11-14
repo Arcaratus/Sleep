@@ -1,0 +1,72 @@
+package arc.sleep.asm;
+
+import arc.sleep.asm.patches.ClassPatch;
+import arc.sleep.asm.patches.PatchIsInBed;
+import net.minecraft.launchwrapper.IClassTransformer;
+import net.minecraftforge.fml.common.FMLLog;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class PatchCollection implements IClassTransformer
+{
+    public static Map<String, List<Class<? extends ClassPatch>>> patchClasses;
+
+    static
+    {
+        addPatch("net.minecraft.entity.player.EntityPlayer", PatchIsInBed.class);
+
+        addPatch("wn", PatchIsInBed.class);
+    }
+
+    public static void addPatch(String classname, Class<? extends ClassPatch> patch)
+    {
+        if (patchClasses == null) patchClasses = new HashMap<String, List<Class<? extends ClassPatch>>>();
+
+        if (patchClasses.get(classname) != null)
+        {
+            patchClasses.get(classname).add(patch);
+        }
+        else
+        {
+            List<Class<? extends ClassPatch>> tmp = new ArrayList<Class<? extends ClassPatch>>();
+            tmp.add(patch);
+            patchClasses.put(classname, tmp);
+        }
+    }
+
+    @Override
+    public byte[] transform(String origName, String newName, byte[] bytecode)
+    {
+        if (patchClasses.containsKey(origName))
+        {
+            ClassReader reader;
+            ClassWriter writer;
+
+            for (Class<? extends ClassPatch> patch : patchClasses.get(origName))
+            {
+                try
+                {
+                    reader = new ClassReader(bytecode);
+                    writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+
+                    ClassVisitor patcher = patch.getDeclaredConstructor(ClassWriter.class).newInstance(writer);
+                    reader.accept(patcher, ClassReader.EXPAND_FRAMES);
+                    bytecode = writer.toByteArray();
+                    FMLLog.info("Successfully patched " + origName + " with " + patch.toString());
+                }
+                catch (Exception e)
+                {
+                    FMLLog.warning("Failed to patch class " + origName + " with " + patch.toString() + " :( - things will not work properly!");
+                }
+            }
+        }
+
+        return bytecode;
+    }
+}

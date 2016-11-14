@@ -1,0 +1,16 @@
+[
+{
+  "modid": "Sleep",
+  "name": "Sleep",
+  "description": "Sleep tight!",
+  "version": "1.0.0",
+  "mcversion": "1.9",
+  "url": "",
+  "updateUrl": "",
+  "authorList": [ "Arcaratus" ],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
