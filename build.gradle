@@ -5,7 +5,7 @@ buildscript {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
     dependencies {
-		classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+		classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
         classpath 'org.ajoberstar:gradle-git:0.10.1'
     }
 }
@@ -71,15 +71,14 @@ processResources {
     inputs.property "mcversion", project.minecraft.version
 
     from(sourceSets.main.resources.srcDirs) {
-        include '**/*.info'
+        include 'mcmod.info'
         include '**/*.properties'
 
         expand 'version': project.version, 'mcversion': project.minecraft.version
     }
 
     from(sourceSets.main.resources.srcDirs) {
-        exclude '**/*.info'
-        exclude '**/*.properties'
+        exclude 'mcmod.info', '**/psd/**'
     }
 }
 
@@ -156,7 +155,7 @@ curseforge {
         changelog = getChangelogText()
         releaseType = 'beta'
 
-		addGameVersion '1.10.2'
+		addGameVersion '1.12'
 		
         addArtifact sourceJar
     }

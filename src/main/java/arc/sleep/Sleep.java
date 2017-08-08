@@ -1,13 +1,16 @@
 package arc.sleep;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockBed;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiNewChat;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerWakeUpEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -15,10 +18,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.io.File;
 
-@Mod(modid = Sleep.MODID, version = Sleep.VERSION, name = "Sleep", guiFactory = "arc.sleep.ConfigGuiFactory")
+@Mod(modid = Sleep.MOD_ID, version = Sleep.VERSION, name = "Sleep", guiFactory = "arc.sleep.ConfigGuiFactory")
 public class Sleep
 {
-    public final static String MODID = "Sleep";
+    public final static String MOD_ID = "sleep";
     public final static String VERSION = "@VERSION@";
 
     private static Configuration config;
@@ -42,7 +45,7 @@ public class Sleep
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
-        configInit(new File(event.getModConfigurationDirectory(), "Sleep.cfg"));
+        configInit(new File(event.getModConfigurationDirectory(), "sleep"));
         MinecraftForge.EVENT_BUS.register(new SleepEvent());
     }
 
@@ -53,33 +56,59 @@ public class Sleep
         {
             if (event.getEntityPlayer() != null)
             {
-                if (event.getEntityPlayer().getHealth() < event.getEntityPlayer().getMaxHealth())
+                if (event.getEntityPlayer().getEntityWorld().getWorldTime() == 24000)
                 {
-                    if (regen)
+                    if (event.getEntityPlayer().getHealth() < event.getEntityPlayer().getMaxHealth())
                     {
-                        event.getEntityPlayer().addPotionEffect(new PotionEffect(MobEffects.regeneration, regenSeconds * 20, regenLevel - 1));
+                        if (regen)
+                        {
+                            event.getEntityPlayer().addPotionEffect(new PotionEffect(MobEffects.REGENERATION, regenSeconds * 20, regenLevel));
+                        }
+                        else
+                        {
+                            event.getEntityPlayer().setHealth(event.getEntityPlayer().getMaxHealth());
+                        }
                     }
-                    else
-                    {
-                        event.getEntityPlayer().setHealth(event.getEntityPlayer().getMaxHealth());
-                    }
-                }
 
-                if (hunger)
-                {
-                    event.getEntityPlayer().addPotionEffect(new PotionEffect(MobEffects.hunger, hungerSeconds * 20, hungerLevel - 1));
+                    if (hunger)
+                    {
+                        event.getEntityPlayer().addPotionEffect(new PotionEffect(MobEffects.HUNGER, hungerSeconds * 20, hungerLevel));
+                    }
                 }
             }
         }
 
         @SubscribeEvent
-        public void sleepEvent(PlayerSleepInBedEvent event)
+        public void rightClickOnBlockEvent(PlayerInteractEvent.RightClickBlock event)
         {
             if (alwaysForceSetSpawn)
             {
-                ForgeEventFactory.onPlayerSpawnSet(event.getEntityPlayer(), event.getPos(), false);
+                if (event.getEntityPlayer().getEntityWorld().getBlockState(event.getPos()).getBlock() instanceof BlockBed)
+                {
+                    System.out.println("ITS A BED");
+                    event.getEntityPlayer().setSpawnPoint(event.getPos(), true);
+
+                    sendNoSpamMessages(new TextComponentString(I18n.format("chat.sleep.forcedSetSpawn")));
+                }
             }
         }
+    }
+
+    private static final int DELETION_ID = 2525277;
+    private static int lastAdded;
+
+    private static void sendNoSpamMessages(ITextComponent... messages)
+    {
+        GuiNewChat chat = Minecraft.getMinecraft().ingameGUI.getChatGUI();
+        for (int i = DELETION_ID + messages.length - 1; i <= lastAdded; i++)
+        {
+            chat.deleteChatLine(i);
+        }
+        for (int i = 0; i < messages.length; i++)
+        {
+            chat.printChatMessageWithOptionalDeletion(messages[i], DELETION_ID + i);
+        }
+        lastAdded = DELETION_ID + messages.length - 1;
     }
 
     public void configInit(File file)
@@ -102,17 +131,17 @@ public class Sleep
 
     public static void syncConfig()
     {
-        config.addCustomCategoryComment(configCategory, "Toggle regeneration instead of instant health (true = on)");
+        config.addCustomCategoryComment(configCategory, "Various configs for sleeping");
 
         regen = config.getBoolean("regen", configCategory, true, "Regeneration = true | Instant Health = false");
         regenSeconds = config.getInt("regenSeconds", configCategory, 5, 0, 10000, "Total time (seconds) regen lasts");
-        regenLevel = config.getInt("regenLevel", configCategory, 1, 1, 10, "Regeneration Level");
+        regenLevel = config.getInt("regenLevel", configCategory, 0, 0, 9, "Regeneration Level");
 
         hunger = config.getBoolean("hunger", configCategory, false, "Hunger when you wake up?");
         hungerSeconds = config.getInt("hungerSeconds", configCategory, 5, 0, 10000, "Total time (seconds) hunger lasts");
-        hungerLevel = config.getInt("hungerLevel", configCategory, 1, 1, 10, "Hunger Level");
+        hungerLevel = config.getInt("hungerLevel", configCategory, 0, 0, 9, "Hunger Level");
 
-        alwaysForceSetSpawn = config.getBoolean("alwaysForceSetSpawn", configCategory, false, "Always force set player spawn when sleeping?");
+        alwaysForceSetSpawn = config.getBoolean("alwaysForceSetSpawn", configCategory, false, "Always force set player spawn when right-click on bed?");
 
         config.save();
     }

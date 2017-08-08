@@ -9,25 +9,22 @@ import java.util.Set;
 public class ConfigGuiFactory implements IModGuiFactory
 {
     @Override
-    public void initialize(Minecraft minecraftInstance)
-    {
+    public void initialize(Minecraft minecraftInstance) {}
 
+    @Override
+    public boolean hasConfigGui()
+    {
+        return true;
     }
 
     @Override
-    public Class<? extends GuiScreen> mainConfigGuiClass()
+    public GuiScreen createConfigGui(GuiScreen parentScreen)
     {
-        return ConfigGui.class;
+        return new ConfigGui(parentScreen);
     }
 
     @Override
     public Set<RuntimeOptionCategoryElement> runtimeGuiCategories()
-    {
-        return null;
-    }
-
-    @Override
-    public RuntimeOptionGuiHandler getHandlerFor(IModGuiFactory.RuntimeOptionCategoryElement element)
     {
         return null;
     }

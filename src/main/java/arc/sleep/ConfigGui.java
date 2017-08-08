@@ -12,13 +12,12 @@ public class ConfigGui extends GuiConfig
 {
     public ConfigGui(GuiScreen parentScreen)
     {
-        super(parentScreen, getConfigElements(parentScreen), Sleep.MODID, false, false, "Sleep Configuration");
+        super(parentScreen, getConfigElements(), Sleep.MOD_ID, false, false, "Sleep Configuration");
     }
 
-    @SuppressWarnings("rawtypes")
-    private static List<IConfigElement> getConfigElements(GuiScreen parent)
+    private static List<IConfigElement> getConfigElements()
     {
-        List<IConfigElement> list = new ArrayList<IConfigElement>();
+        List<IConfigElement> list = new ArrayList<>();
 
         // adds sections declared in ConfigHandler. toLowerCase() is used
         // because the configuration class automatically does this, so must we.
