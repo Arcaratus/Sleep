@@ -1,4 +1,4 @@
-#Blood Arsenal  [![](http://cf.way2muchnoise.eu/full_blood-arsenal_downloads.svg)](https://minecraft.curseforge.com/projects/blood-arsenal)
+#Sleep  [![](http://cf.way2muchnoise.eu/full_blood-arsenal_downloads.svg)](https://minecraft.curseforge.com/projects/blood-arsenal)
 
 ###[Downloads](http://minecraft.curseforge.com/projects/blood-magic-addon-blood-arsenal/files)
 
