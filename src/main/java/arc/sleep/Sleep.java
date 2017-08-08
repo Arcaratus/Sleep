@@ -30,6 +30,7 @@ public class Sleep
 
     public static boolean regen;
     public static boolean hunger;
+    public static int healthGained;
     public static int regenSeconds;
     public static int regenLevel;
     public static int hungerSeconds;
@@ -45,7 +46,7 @@ public class Sleep
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
-        configInit(new File(event.getModConfigurationDirectory(), "sleep"));
+        configInit(new File(event.getModConfigurationDirectory(), "sleep.cfg"));
         MinecraftForge.EVENT_BUS.register(new SleepEvent());
     }
 
@@ -62,6 +63,7 @@ public class Sleep
                     {
                         if (regen)
                         {
+                            event.getEntityPlayer().setHealth(Math.min(event.getEntityPlayer().getMaxHealth(), event.getEntityPlayer().getHealth() + healthGained));
                             event.getEntityPlayer().addPotionEffect(new PotionEffect(MobEffects.REGENERATION, regenSeconds * 20, regenLevel));
                         }
                         else
@@ -85,7 +87,6 @@ public class Sleep
             {
                 if (event.getEntityPlayer().getEntityWorld().getBlockState(event.getPos()).getBlock() instanceof BlockBed)
                 {
-                    System.out.println("ITS A BED");
                     event.getEntityPlayer().setSpawnPoint(event.getPos(), true);
 
                     sendNoSpamMessages(new TextComponentString(I18n.format("chat.sleep.forcedSetSpawn")));
@@ -132,13 +133,16 @@ public class Sleep
     public static void syncConfig()
     {
         config.addCustomCategoryComment(configCategory, "Various configs for sleeping");
+        config.setCategoryRequiresMcRestart(configCategory, false);
+        config.setCategoryRequiresWorldRestart(configCategory, false);
 
         regen = config.getBoolean("regen", configCategory, true, "Regeneration = true | Instant Health = false");
-        regenSeconds = config.getInt("regenSeconds", configCategory, 5, 0, 10000, "Total time (seconds) regen lasts");
-        regenLevel = config.getInt("regenLevel", configCategory, 0, 0, 9, "Regeneration Level");
+        regenSeconds = config.getInt("regenSeconds", configCategory, 10, 0, 10000, "Total time (seconds) regen lasts");
+        regenLevel = config.getInt("regenLevel", configCategory, 1, 0, 9, "Regeneration Level");
+        healthGained = config.getInt("healthGained", configCategory, 8, 0, 20, "Health gained when waking up");
 
         hunger = config.getBoolean("hunger", configCategory, false, "Hunger when you wake up?");
-        hungerSeconds = config.getInt("hungerSeconds", configCategory, 5, 0, 10000, "Total time (seconds) hunger lasts");
+        hungerSeconds = config.getInt("hungerSeconds", configCategory, 10, 0, 10000, "Total time (seconds) hunger lasts");
         hungerLevel = config.getInt("hungerLevel", configCategory, 0, 0, 9, "Hunger Level");
 
         alwaysForceSetSpawn = config.getBoolean("alwaysForceSetSpawn", configCategory, false, "Always force set player spawn when right-click on bed?");
